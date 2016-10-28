@@ -293,8 +293,8 @@ bool RoutingManager::commitRouting()
             tNFA_STATUS nfaStat;
             
             //Safety Check...
-            if(fileLen > MAX_UID_FILE_LEN)
-                fileLen = MAX_UID_FILE_LEN;
+            if(fileLen > TAG_MAX_UID_LEN)
+                fileLen = TAG_MAX_UID_LEN;
             
             nfaStat = NFA_CeSetIsoDepListenNfcAParams(buffer, fileLen, 0x0004, TRUE, 0x08, TRUE, (UINT8 *)NULL, 0);
             
