@@ -261,16 +261,16 @@ bool RoutingManager::commitRouting()
     
     //CUSTOM UID CODE
     FILE *file;
-	char *buffer;
-	unsigned long fileLen;
+    UINT8 *buffer;
+    unsigned long fileLen;
 
-	//Open file
-	file = fopen("/sdcard/uid.bin", "rb");
-	if (!file)
-	{
+    //Open file
+    file = fopen("/sdcard/uid.bin", "rb");
+    if (!file)
+    {
         ALOGD ("Unable to open file /sdcard/uid.bin");
-	}
-	else
+    }
+    else
     {
 	    //Get file length
 	    fseek(file, 0, SEEK_END);
@@ -278,33 +278,33 @@ bool RoutingManager::commitRouting()
 	    fseek(file, 0, SEEK_SET);
 
 	    //Allocate memory
-	    buffer=(char *)malloc(fileLen+1);
+	    buffer=(UINT8 *)malloc(fileLen+1);
 	    if (!buffer)
 	    {
-		    ALOGD ("Memory Error");
-            fclose(file);    
-        }
-        else
-        {
-	        //Read file contents into buffer
-	        fread(buffer, fileLen, 1, file);
-	        fclose(file);
+		ALOGD ("Memory Error");
+            	fclose(file);    
+	    }
+	    else
+	    {
+	    	//Read file contents into buffer
+	    	fread(buffer, fileLen, 1, file);
+	    	fclose(file);
 
-            tNFA_STATUS nfaStat;
+            	tNFA_STATUS nfaStat;
             
-            //Safety Check...
-            if(fileLen > TAG_MAX_UID_LEN)
-                fileLen = TAG_MAX_UID_LEN;
+            	//Safety Check...
+            	if(fileLen > TAG_MAX_UID_LEN)
+                	fileLen = TAG_MAX_UID_LEN;
             
-            nfaStat = NFA_CeSetIsoDepListenNfcAParams(buffer, fileLen, 0x0004, TRUE, 0x08, TRUE, (UINT8 *)NULL, 0);
+            	nfaStat = NFA_CeSetIsoDepListenNfcAParams(buffer, fileLen, 0x0004, TRUE, 0x08, TRUE, (UINT8 *)NULL, 0);
             
-            if (nfaStat != NFA_STATUS_OK && fileLen == 4)
-                ALOGD ("UID is 0x%X%X%X%X",buffer[0],buffer[1],buffer[2],buffer[3]);  
-            if (nfaStat != NFA_STATUS_OK && fileLen > 4)
-                ALOGD ("UID is 0x%X%X%X%X...",buffer[0],buffer[1],buffer[2],buffer[3]);
+            	if (nfaStat != NFA_STATUS_OK && fileLen == 4)
+                	ALOGD ("UID is 0x%X%X%X%X",buffer[0],buffer[1],buffer[2],buffer[3]);  
+            	else if (nfaStat != NFA_STATUS_OK && fileLen > 4)
+                	ALOGD ("UID is 0x%X%X%X%X...",buffer[0],buffer[1],buffer[2],buffer[3]);
 	        
-            free(buffer);
-        }
+            	free(buffer);
+	    }
     }
     //END CUSTOM UID CODE
     
