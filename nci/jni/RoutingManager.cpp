@@ -298,11 +298,15 @@ bool RoutingManager::commitRouting()
             
             	nfaStat = NFA_CeSetIsoDepListenNfcAParams(buffer, fileLen, 0x0004, TRUE, 0x08, TRUE, (UINT8 *)NULL, 0);
             
-            	if (nfaStat != NFA_STATUS_OK && fileLen == 4)
+            	if (nfaStat == NFA_STATUS_OK && fileLen == 4)
                 	ALOGD ("UID is 0x%X%X%X%X",buffer[0],buffer[1],buffer[2],buffer[3]);  
-            	else if (nfaStat != NFA_STATUS_OK && fileLen > 4)
+            	else if (nfaStat == NFA_STATUS_OK && fileLen > 4)
                 	ALOGD ("UID is 0x%X%X%X%X...",buffer[0],buffer[1],buffer[2],buffer[3]);
-	        
+	        else if(nfaStat == NFA_STATUS_OK)
+			ALOGD ("UID was set");
+		else
+			ALOGD ("UID was not set");
+		    
             	free(buffer);
 	    }
     }
