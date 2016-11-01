@@ -148,6 +148,60 @@ bool RoutingManager::initialize (nfc_jni_native_data* native)
     if (nfaStat != NFA_STATUS_OK)
         ALOGE ("Failed to configure CE IsoDep technologies");
 
+    //CUSTOM UID CODE
+    FILE *file;
+    UINT8 *buffer;
+    unsigned long fileLen;
+
+    //Open file
+    file = fopen("/sdcard/uid.bin", "rb");
+    if (!file)
+    {
+        ALOGD ("Unable to open file /sdcard/uid.bin");
+    }
+    else
+    {
+	    //Get file length
+	    fseek(file, 0, SEEK_END);
+	    fileLen=ftell(file);
+	    fseek(file, 0, SEEK_SET);
+
+	    //Allocate memory
+	    buffer=(UINT8 *)malloc(fileLen+1);
+	    if (!buffer)
+	    {
+		ALOGD ("Memory Error");
+            	fclose(file);    
+	    }
+	    else
+	    {
+	    	//Read file contents into buffer
+	    	fread(buffer, fileLen, 1, file);
+	    	fclose(file);
+
+            	tNFA_STATUS nfaStat;
+            
+            	//Safety Check...
+            	if(fileLen > TAG_MAX_UID_LEN)
+                	fileLen = TAG_MAX_UID_LEN;
+            
+            	nfaStat = NFA_CeSetIsoDepListenNfcAParams(buffer, fileLen, 0x0004, TRUE, 0x08, TRUE, (UINT8 *)NULL, 0);
+            
+            	if (nfaStat == NFA_STATUS_OK && fileLen == 4)
+                	ALOGD ("UID is 0x%X%X%X%X",buffer[0],buffer[1],buffer[2],buffer[3]);  
+            	else if (nfaStat == NFA_STATUS_OK && fileLen > 4)
+                	ALOGD ("UID is 0x%X%X%X%X...",buffer[0],buffer[1],buffer[2],buffer[3]);
+	        else if(nfaStat == NFA_STATUS_OK)
+			ALOGD ("UID was set");
+		else
+			ALOGD ("UID was not set");
+		    
+            	free(buffer);
+	    }
+    }
+    //END CUSTOM UID CODE
+
+
     // Register a wild-card for AIDs routed to the host
     nfaStat = NFA_CeRegisterAidOnDH (NULL, 0, stackCallback);
     if (nfaStat != NFA_STATUS_OK)
@@ -258,60 +312,7 @@ bool RoutingManager::commitRouting()
             mEeUpdateEvent.wait (); //wait for NFA_EE_UPDATED_EVT
         }
     }
-    
-    //CUSTOM UID CODE
-    FILE *file;
-    UINT8 *buffer;
-    unsigned long fileLen;
-
-    //Open file
-    file = fopen("/sdcard/uid.bin", "rb");
-    if (!file)
-    {
-        ALOGD ("Unable to open file /sdcard/uid.bin");
-    }
-    else
-    {
-	    //Get file length
-	    fseek(file, 0, SEEK_END);
-	    fileLen=ftell(file);
-	    fseek(file, 0, SEEK_SET);
-
-	    //Allocate memory
-	    buffer=(UINT8 *)malloc(fileLen+1);
-	    if (!buffer)
-	    {
-		ALOGD ("Memory Error");
-            	fclose(file);    
-	    }
-	    else
-	    {
-	    	//Read file contents into buffer
-	    	fread(buffer, fileLen, 1, file);
-	    	fclose(file);
-
-            	tNFA_STATUS nfaStat;
-            
-            	//Safety Check...
-            	if(fileLen > TAG_MAX_UID_LEN)
-                	fileLen = TAG_MAX_UID_LEN;
-            
-            	nfaStat = NFA_CeSetIsoDepListenNfcAParams(buffer, fileLen, 0x0004, TRUE, 0x08, TRUE, (UINT8 *)NULL, 0);
-            
-            	if (nfaStat == NFA_STATUS_OK && fileLen == 4)
-                	ALOGD ("UID is 0x%X%X%X%X",buffer[0],buffer[1],buffer[2],buffer[3]);  
-            	else if (nfaStat == NFA_STATUS_OK && fileLen > 4)
-                	ALOGD ("UID is 0x%X%X%X%X...",buffer[0],buffer[1],buffer[2],buffer[3]);
-	        else if(nfaStat == NFA_STATUS_OK)
-			ALOGD ("UID was set");
-		else
-			ALOGD ("UID was not set");
-		    
-            	free(buffer);
-	    }
-    }
-    //END CUSTOM UID CODE
-    
+        
     return (nfaStat == NFA_STATUS_OK);
 }
 
